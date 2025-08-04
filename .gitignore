@@ -1,0 +1,7 @@
+# Ignore everything under src-tauri/target
+/src-tauri/target/*
+
+# Keep the bundle folder
+!/src-tauri/target/release/
+!/src-tauri/target/release/bundle/
+!/src-tauri/target/release/bundle/**
