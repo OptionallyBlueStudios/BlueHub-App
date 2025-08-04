@@ -1,4 +1,4 @@
-name: Tauri Build
+name: Build Tauri App
 
 on:
   push:
@@ -10,16 +10,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: macos-latest
-            target: macos
-          - os: windows-latest
-            target: windows
           - os: ubuntu-latest
-            target: linux
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -29,11 +31,21 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Fix tauri binary permissions (only on Unix)
+        if: runner.os != 'Windows'
+        run: chmod +x node_modules/.bin/tauri
+
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install Tauri CLI
+      - name: Install Tauri CLI globally (optional fallback)
         run: cargo install tauri-cli
 
-      - name: Build the Tauri App
+      - name: Build Tauri App
         run: npm run tauri build
+
+      - name: Upload built bundle as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-bundle
+          path: src-tauri/target/release/bundle/
